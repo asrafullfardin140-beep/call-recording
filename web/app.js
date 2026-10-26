@@ -2,11 +2,20 @@
 
 const REPO = 'asrafullfardin140-beep/call-recording';
 const API = `https://api.github.com/repos/${REPO}/releases/latest`;
-const FALLBACK_RELEASES = `https://github.com/${REPO}/releases`;
+const FALLBACK_RELEASES = `https://github.com/${REPO}/releases/latest`;
+
+/** Prefer these if the API is unreachable (keep in sync with latest shipped tag). */
+const FALLBACK_ASSETS = {
+  mac: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-mac-arm64.dmg`,
+  win: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Setup.exe`,
+  winPortable: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Portable.exe`
+};
 
 const btnMac = document.getElementById('btnMac');
 const btnWin = document.getElementById('btnWin');
+const btnWinPortable = document.getElementById('btnWinPortable');
 const meta = document.getElementById('meta');
+const versionLabel = document.getElementById('versionLabel');
 const allReleases = document.getElementById('allReleases');
 
 function pickAsset(assets, predicates) {
@@ -17,28 +26,45 @@ function pickAsset(assets, predicates) {
   return null;
 }
 
-function enableButton(btn, asset) {
-  if (!asset || !asset.browser_download_url) {
+function enableButton(btn, url) {
+  if (!btn) return false;
+  if (!url) {
     btn.setAttribute('aria-disabled', 'true');
     btn.removeAttribute('href');
     return false;
   }
-  btn.href = asset.browser_download_url;
+  btn.href = url;
   btn.removeAttribute('aria-disabled');
   return true;
 }
 
+function setVersionText(tag) {
+  if (!versionLabel) return;
+  const clean = (tag || '').replace(/^v/i, '') || '—';
+  versionLabel.textContent = clean;
+}
+
+function applyFallbacks(reason) {
+  enableButton(btnMac, FALLBACK_ASSETS.mac);
+  enableButton(btnWin, FALLBACK_ASSETS.win);
+  enableButton(btnWinPortable, FALLBACK_ASSETS.winPortable);
+  setVersionText('0.1.1');
+  allReleases.href = FALLBACK_RELEASES;
+  meta.dataset.state = 'warn';
+  meta.textContent = reason;
+}
+
 async function loadLatest() {
   try {
-    const res = await fetch(API, {
-      headers: { Accept: 'application/vnd.github+json' }
+    const res = await fetch(`${API}?_=${Date.now()}`, {
+      headers: { Accept: 'application/vnd.github+json' },
+      cache: 'no-store'
     });
 
     if (res.status === 404) {
-      meta.dataset.state = 'error';
-      meta.textContent =
-        'No public release yet. Once CI publishes v0.1.0 (or later), these buttons will link to the installers.';
-      allReleases.href = FALLBACK_RELEASES;
+      applyFallbacks(
+        'No public release found via API — using v0.1.1 direct links.'
+      );
       return;
     }
 
@@ -51,21 +77,30 @@ async function loadLatest() {
 
     const mac = pickAsset(assets, [
       (n) => /mac-arm64\.dmg$/i.test(n),
-      (n) => /\.dmg$/i.test(n),
-      (n) => /mac-arm64\.zip$/i.test(n)
+      (n) => /\.dmg$/i.test(n)
     ]);
-
     const win = pickAsset(assets, [
       (n) => /win-x64-Setup\.exe$/i.test(n),
-      (n) => /Setup\.exe$/i.test(n),
+      (n) => /Setup\.exe$/i.test(n)
+    ]);
+    const winPortable = pickAsset(assets, [
       (n) => /win-x64-Portable\.exe$/i.test(n),
-      (n) => /\.exe$/i.test(n)
+      (n) => /Portable\.exe$/i.test(n)
     ]);
 
-    const macOk = enableButton(btnMac, mac);
-    const winOk = enableButton(btnWin, win);
+    const macOk = enableButton(btnMac, mac && mac.browser_download_url);
+    const winOk = enableButton(btnWin, win && win.browser_download_url);
+    const portableOk = enableButton(
+      btnWinPortable,
+      winPortable && winPortable.browser_download_url
+    );
+
+    if (!macOk) enableButton(btnMac, FALLBACK_ASSETS.mac);
+    if (!winOk) enableButton(btnWin, FALLBACK_ASSETS.win);
+    if (!portableOk) enableButton(btnWinPortable, FALLBACK_ASSETS.winPortable);
 
     allReleases.href = release.html_url || FALLBACK_RELEASES;
+    setVersionText(release.tag_name || '0.1.1');
 
     const parts = [];
     if (release.tag_name) parts.push(release.tag_name);
@@ -73,22 +108,13 @@ async function loadLatest() {
       parts.push(new Date(release.published_at).toLocaleDateString());
     }
 
-    if (!macOk && !winOk) {
-      meta.dataset.state = 'error';
-      meta.textContent = `Release ${release.tag_name || ''} has no Mac/Windows installers attached yet.`;
-      return;
-    }
-
     delete meta.dataset.state;
-    meta.textContent = `Latest: ${parts.join(' · ')}${
-      macOk || winOk ? '' : ''
-    } — direct links from GitHub Releases.`;
+    meta.textContent = `Latest release ${parts.join(' · ')} — links from GitHub Releases.`;
   } catch (err) {
     console.error(err);
-    meta.dataset.state = 'error';
-    meta.textContent =
-      'Could not reach GitHub Releases. Use the link below, or try again shortly.';
-    allReleases.href = FALLBACK_RELEASES;
+    applyFallbacks(
+      'Could not reach GitHub API — using v0.1.1 direct download links.'
+    );
   }
 }
 

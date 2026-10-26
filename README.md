@@ -8,7 +8,9 @@ Desktop **call recorder** for web meetings (Chrome, Edge, and similar). Captures
 
 ## Download
 
-Public installers ship via **GitHub Releases**. A small static landing page in `web/` is meant to be hosted on **Vercel** and points at the latest release assets (it does not build Electron binaries).
+- **Download page (Vercel):** https://call-recording.vercel.app  
+  (Root Directory `web` — buttons resolve GitHub `releases/latest`, with v0.1.1 fallbacks.)
+- **GitHub Releases:** https://github.com/asrafullfardin140-beep/call-recording/releases/latest
 
 | Platform | Expected asset name |
 |----------|---------------------|
@@ -16,7 +18,8 @@ Public installers ship via **GitHub Releases**. A small static landing page in `
 | Windows (installer) | `Cybro-Recorder-<version>-win-x64-Setup.exe` |
 | Windows (portable) | `Cybro-Recorder-<version>-win-x64-Portable.exe` |
 
-Latest release page: https://github.com/asrafullfardin140-beep/call-recording/releases/latest
+**Current Mac (v0.1.1, ad-hoc signed):**  
+https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.1/Cybro-Recorder-0.1.1-mac-arm64.dmg
 
 ### Publish a release (GitHub Actions)
 
@@ -154,7 +157,7 @@ Cross-compiling from Linux may need platform-specific tooling; prefer building M
 3. Set the Multi-Output Device as the Mac’s output while in the call (so you still hear the meeting and BlackHole receives a copy).
 4. Start Cybro Recorder. If loopback via ScreenCaptureKit is unavailable, select BlackHole as an aggregate/input path in a future build — for this MVP, prefer Screen Recording first; BlackHole remains the documented escape hatch when OS loopback is blocked.
 
-App entitlements ship in `build/entitlements.mac.plist` (mic + hardened runtime helpers). Notarization is out of scope for MVP; Gatekeeper may require “Open anyway” on unsigned local builds.
+App entitlements ship in `build/entitlements.mac.plist` (mic + hardened runtime helpers). Release Mac builds are **ad-hoc signed**; Apple notarization is out of MVP scope — see [First open on macOS](#first-open-on-macos-apple-silicon).
 
 ## Project layout
 
@@ -164,6 +167,8 @@ src/
   renderer/      UI + Web Audio recorder + WAV encoder
   shared/        Constants / IPC channel names
 build/           macOS entitlements
+scripts/         electron-builder hooks (afterPack ad-hoc codesign)
+web/             Vercel download landing page
 ```
 
 ## Known limitations (honest MVP)

@@ -98,12 +98,37 @@ body {
   color: var(--ink-soft);
 }
 
+.version-line {
+  margin: 16px 0 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.version-note {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
 .cta {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: 28px;
   max-width: 360px;
+}
+
+.portable-wrap {
+  margin: 12px 0 0;
+}
+
+.portable {
+  color: var(--accent-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .btn {
