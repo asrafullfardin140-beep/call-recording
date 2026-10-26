@@ -179,6 +179,10 @@ body {
   color: #8e1b1b;
 }
 
+.meta[data-state='warn'] {
+  color: var(--warn, #9a5b00);
+}
+
 .hint {
   margin: 10px 0 0;
   font-size: 0.84rem;
