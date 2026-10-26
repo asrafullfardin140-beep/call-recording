@@ -6,6 +6,52 @@ Desktop **call recorder** for web meetings (Chrome, Edge, and similar). Captures
 
 **Targets:** macOS Apple Silicon (arm64) · Windows (x64)
 
+## Download
+
+Public installers ship via **GitHub Releases**. A small static landing page in `web/` is meant to be hosted on **Vercel** and points at the latest release assets (it does not build Electron binaries).
+
+| Platform | Expected asset name |
+|----------|---------------------|
+| macOS Apple Silicon | `Cybro-Recorder-<version>-mac-arm64.dmg` |
+| Windows (installer) | `Cybro-Recorder-<version>-win-x64-Setup.exe` |
+| Windows (portable) | `Cybro-Recorder-<version>-win-x64-Portable.exe` |
+
+Latest release page: https://github.com/asrafullfardin140-beep/call-recording/releases/latest
+
+### Publish a release (GitHub Actions)
+
+Workflow: [`.github/workflows/release.yml`](.github/workflows/release.yml)
+
+1. Enable **GitHub Actions** for the repo if prompted.
+2. Push a version tag, or run the workflow manually:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Or: Actions → **Release** → **Run workflow** (optional tag / draft).
+
+Runners: `macos-14` (arm64 DMG/ZIP) and `windows-latest` (NSIS + portable). Builds are **unsigned** in MVP — Gatekeeper / SmartScreen may warn.
+
+### Deploy the download page (Vercel)
+
+Static site lives in `web/`. Root `vercel.json` rewrites `/` → `/web/index.html`.
+
+**Recommended:** Import the GitHub repo at [vercel.com/new](https://vercel.com/new) and set **Root Directory** to `web` (uses `web/vercel.json`). Or leave Root Directory empty and rely on the root rewrites.
+
+```bash
+# With Vercel auth (permanent project)
+npx vercel --prod
+
+# Or deploy only the web folder
+npx vercel web --prod
+```
+
+This environment has no Vercel login — a permanent `*.vercel.app` URL requires you to connect the repo or claim a temporary deploy.
+
+Preview locally: open `web/index.html` or `npx serve web`.
+
 ## Features (MVP)
 
 - Record / Stop with live status and timer

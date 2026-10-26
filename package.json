@@ -27,6 +27,7 @@
     "appId": "com.cybro.recorder",
     "productName": "Cybro Recorder",
     "copyright": "Copyright © Cybro",
+    "artifactName": "Cybro-Recorder-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -37,6 +38,7 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "artifactName": "Cybro-Recorder-${version}-mac-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -82,7 +84,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Cybro Recorder"
+      "shortcutName": "Cybro Recorder",
+      "artifactName": "Cybro-Recorder-${version}-win-x64-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Cybro-Recorder-${version}-win-x64-Portable.${ext}"
     },
     "linux": {
       "target": [
