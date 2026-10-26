@@ -1,0 +1,168 @@
+name: Release
+
+# Builds Mac arm64 + Windows installers on GitHub-hosted runners and attaches
+# them to a GitHub Release. Vercel only hosts the download landing page.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.1.1). Empty = v + package.json version.'
+        required: false
+        default: ''
+      draft:
+        description: 'Create release as draft'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-mac:
+    name: Build macOS arm64
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Ad-hoc sign via package.json mac.identity "-" + scripts/afterPack.js.
+      # Do NOT set CSC_IDENTITY_AUTO_DISCOVERY=false here — that skipped signing
+      # in v0.1.0 and caused Gatekeeper "damaged and can't be opened" on Apple Silicon.
+      - name: Package Mac arm64 (ad-hoc signed)
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'true'
+
+      - name: Verify ad-hoc code signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$(find dist -name 'Cybro Recorder.app' -type d | head -n 1)"
+          if [ -z "$APP" ]; then
+            echo "Cybro Recorder.app not found under dist/"
+            find dist -maxdepth 3 -type d -print
+            exit 1
+          fi
+          echo "Verifying: $APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -dv --verbose=4 "$APP" 2>&1 | tee /tmp/codesign-info.txt
+          grep -E 'Signature=Adhoc|flags=.*runtime|Identifier=' /tmp/codesign-info.txt || true
+          # Confirm arm64 Mach-O
+          file "$APP/Contents/MacOS/Cybro Recorder" | tee /tmp/macho.txt
+          grep -qi 'arm64\|Mach-O' /tmp/macho.txt
+
+      - name: Upload Mac artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cybro-mac-arm64
+          path: |
+            dist/Cybro-Recorder-*-mac-arm64.dmg
+            dist/Cybro-Recorder-*-mac-arm64.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  build-win:
+    name: Build Windows x64
+    runs-on: windows-latest
+    env:
+      # Windows MVP stays unsigned; skip cert discovery noise.
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Package Windows
+        run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cybro-win-x64
+          path: |
+            dist/Cybro-Recorder-*-win-x64-Setup.exe
+            dist/Cybro-Recorder-*-win-x64-Portable.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+            if [ -z "$TAG" ]; then
+              VER="$(node -p "require('./package.json').version")"
+              TAG="v${VER}"
+            fi
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: ${TAG}"
+
+      - name: Download Mac artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: cybro-mac-arm64
+          path: release-assets
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: cybro-win-x64
+          path: release-assets
+
+      - name: List assets
+        run: ls -la release-assets
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Cybro Recorder ${{ steps.meta.outputs.tag }}
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

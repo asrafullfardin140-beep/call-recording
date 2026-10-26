@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; media-src 'self' blob:; connect-src 'self'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cybro Recorder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;650;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="brand">
+        <p class="brand__mark">Cybro Recorder</p>
+        <p class="brand__tag">Call recording for web meetings</p>
+      </header>
+
+      <section class="stage" aria-live="polite">
+        <div class="status-row">
+          <span class="pulse" id="pulse" data-state="idle"></span>
+          <p class="status" id="statusLabel">Ready to record a call</p>
+        </div>
+        <p class="timer" id="timer">00:00</p>
+        <p class="mode" id="modeLabel">Stereo WAV · mic + system audio</p>
+      </section>
+
+      <section class="controls">
+        <button type="button" class="btn btn--record" id="recordBtn">
+          <span class="btn__glyph" aria-hidden="true"></span>
+          <span class="btn__label">Record call</span>
+        </button>
+        <button type="button" class="btn btn--stop" id="stopBtn" disabled>
+          Stop
+        </button>
+      </section>
+
+      <section class="save">
+        <p class="save__label">Saves to</p>
+        <p class="save__path" id="savePath">—</p>
+        <p class="save__next" id="nextFile">Next file: —</p>
+        <button type="button" class="btn btn--ghost" id="openFolderBtn">
+          Open recordings folder
+        </button>
+      </section>
+
+      <section class="notice" id="notice" hidden>
+        <p class="notice__title" id="noticeTitle"></p>
+        <p class="notice__body" id="noticeBody"></p>
+        <div class="notice__actions" id="noticeActions"></div>
+      </section>
+    </main>
+
+    <script src="audio/wav-encoder.js"></script>
+    <script src="audio/recorder.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

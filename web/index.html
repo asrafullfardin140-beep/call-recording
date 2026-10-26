@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <title>Cybro Recorder — Download</title>
+    <meta
+      name="description"
+      content="Download Cybro Recorder for macOS Apple Silicon and Windows. Call recording for web meetings."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;650;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <main class="hero">
+      <p class="brand">Cybro Recorder</p>
+      <h1 class="headline">Call recording for web meetings</h1>
+      <p class="lede">
+        Capture your microphone and system audio during Chrome or Edge calls.
+        Saves clear WAV files to your Documents folder.
+      </p>
+      <p class="version-line">
+        Version <span id="versionLabel">0.1.1</span>
+        <span class="version-note">· macOS Apple Silicon &amp; Windows</span>
+      </p>
+
+      <div class="cta" id="cta">
+        <a
+          class="btn btn--mac"
+          id="btnMac"
+          href="https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.1/Cybro-Recorder-0.1.1-mac-arm64.dmg"
+        >
+          Download for Mac (Apple Silicon)
+        </a>
+        <a
+          class="btn btn--win"
+          id="btnWin"
+          href="https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Setup.exe"
+        >
+          Download for Windows
+        </a>
+      </div>
+      <p class="portable-wrap">
+        <a
+          class="portable"
+          id="btnWinPortable"
+          href="https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Portable.exe"
+          >Windows portable (.exe)</a
+        >
+      </p>
+
+      <p class="meta" id="meta">Looking up the latest release…</p>
+      <p class="hint">
+        Mac builds are ad-hoc signed (not notarized). If Gatekeeper says the app
+        is damaged or can’t be opened, clear quarantine then open:
+        <code>xattr -cr "/Applications/Cybro Recorder.app"</code>
+        — or right-click → Open. Use <strong>v0.1.1+</strong> (not v0.1.0).
+      </p>
+      <p class="hint">
+        <a
+          id="allReleases"
+          href="https://github.com/asrafullfardin140-beep/call-recording/releases/latest"
+          >Latest release on GitHub</a
+        >
+      </p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
