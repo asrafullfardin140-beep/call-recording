@@ -9,4 +9,4 @@ Thumbs.db
 *.wav
 .env
 .env.*
-.vercel
+.vercel/

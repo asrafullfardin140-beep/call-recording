@@ -26,13 +26,38 @@ Workflow: [`.github/workflows/release.yml`](.github/workflows/release.yml)
 2. Push a version tag, or run the workflow manually:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 Or: Actions → **Release** → **Run workflow** (optional tag / draft).
 
-Runners: `macos-14` (arm64 DMG/ZIP) and `windows-latest` (NSIS + portable). Builds are **unsigned** in MVP — Gatekeeper / SmartScreen may warn.
+Runners: `macos-14` (arm64 DMG/ZIP) and `windows-latest` (NSIS + portable).
+
+Mac builds are **ad-hoc signed** (not Apple Developer ID / notarized). Windows builds are unsigned. Gatekeeper / SmartScreen may still warn.
+
+### First open on macOS (Apple Silicon)
+
+v0.1.0 DMGs were produced with signing disabled (`CSC_IDENTITY_AUTO_DISCOVERY=false`) while `hardenedRuntime` was on. Gatekeeper then reports **"Cybro Recorder is damaged and can't be opened"** — that was a bad/missing signature, not a corrupt download.
+
+From **v0.1.1** onward, CI ad-hoc signs the `.app` (`identity: "-"` + `scripts/afterPack.js`) and verifies `codesign` before uploading.
+
+If macOS still blocks a downloaded build (quarantine / unidentified developer):
+
+1. Drag **Cybro Recorder** to Applications (or leave it in Downloads).
+2. Clear quarantine, then open:
+
+```bash
+xattr -cr "/Applications/Cybro Recorder.app"
+# or, if you left it in Downloads:
+xattr -cr ~/Downloads/Cybro\ Recorder.app
+open "/Applications/Cybro Recorder.app"
+```
+
+3. Or: right-click the app → **Open** → **Open** again in the dialog.
+4. System Settings → Privacy & Security may show an **Open Anyway** button after a blocked launch.
+
+True silent open on every Mac still requires an Apple Developer ID certificate and notarization (out of MVP scope).
 
 ### Deploy the download page (Vercel)
 

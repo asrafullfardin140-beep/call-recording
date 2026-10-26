@@ -1,7 +1,7 @@
 {
   "name": "cybro-recorder",
   "productName": "Cybro Recorder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop call recorder for web meetings — microphone + system audio to WAV.",
   "main": "src/main/main.js",
   "author": "Cybro",
@@ -36,6 +36,7 @@
       "src/**/*",
       "package.json"
     ],
+    "afterPack": "./scripts/afterPack.js",
     "mac": {
       "category": "public.app-category.productivity",
       "artifactName": "Cybro-Recorder-${version}-mac-${arch}.${ext}",
@@ -53,6 +54,7 @@
           ]
         }
       ],
+      "identity": "-",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
