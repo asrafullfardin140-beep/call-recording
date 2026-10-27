@@ -43,16 +43,16 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Ad-hoc sign via package.json mac.identity "-" + scripts/afterPack.js.
-      # Do NOT set CSC_IDENTITY_AUTO_DISCOVERY=false here — that skipped signing
-      # in v0.1.0 and caused Gatekeeper "damaged and can't be opened" on Apple Silicon.
-      - name: Package Mac arm64 (ad-hoc signed)
+      # Sign only in afterPack (plain ad-hoc, no hardened runtime).
+      # identity:null + CSC_IDENTITY_AUTO_DISCOVERY=false stops electron-builder
+      # from applying --options runtime (which caused Gatekeeper "damaged" in v0.1.1).
+      - name: Package Mac arm64 (plain ad-hoc signed)
         run: npm run dist:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: 'true'
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Verify ad-hoc code signature
+      - name: Verify ad-hoc signature (must NOT be hardened runtime)
         shell: bash
         run: |
           set -euo pipefail
@@ -65,8 +65,13 @@ jobs:
           echo "Verifying: $APP"
           codesign --verify --deep --strict --verbose=2 "$APP"
           codesign -dv --verbose=4 "$APP" 2>&1 | tee /tmp/codesign-info.txt
-          grep -E 'Signature=Adhoc|flags=.*runtime|Identifier=' /tmp/codesign-info.txt || true
-          # Confirm arm64 Mach-O
+          grep -E 'Signature=Adhoc|Identifier=' /tmp/codesign-info.txt || true
+          FLAGS="$(grep '^flags=' /tmp/codesign-info.txt || true)"
+          echo "flags line: $FLAGS"
+          if echo "$FLAGS" | grep -qi 'runtime'; then
+            echo "ERROR: hardened runtime is set — Gatekeeper will report damaged"
+            exit 1
+          fi
           file "$APP/Contents/MacOS/Cybro Recorder" | tee /tmp/macho.txt
           grep -qi 'arm64\|Mach-O' /tmp/macho.txt
 
