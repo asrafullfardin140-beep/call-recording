@@ -55,10 +55,10 @@ class CallRecorder {
       throw error;
     }
 
-    // 2) System / loopback (best-effort)
+    // 2) System / loopback (best-effort, time-boxed so Record never hangs)
     try {
       // Video is required by getDisplayMedia; we discard video tracks immediately.
-      this.systemStream = await navigator.mediaDevices.getDisplayMedia({
+      const displayPromise = navigator.mediaDevices.getDisplayMedia({
         audio: true,
         video: {
           width: 16,
@@ -66,6 +66,15 @@ class CallRecorder {
           frameRate: 1
         }
       });
+      const timeoutMs = 20000;
+      this.systemStream = await Promise.race([
+        displayPromise,
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`System audio picker timed out after ${timeoutMs}ms`));
+          }, timeoutMs);
+        })
+      ]);
       this.systemStream.getVideoTracks().forEach((t) => {
         t.stop();
         this.systemStream.removeTrack(t);

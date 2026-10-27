@@ -18,8 +18,8 @@ Desktop **call recorder** for web meetings (Chrome, Edge, and similar). Captures
 | Windows (installer) | `Cybro-Recorder-<version>-win-x64-Setup.exe` |
 | Windows (portable) | `Cybro-Recorder-<version>-win-x64-Portable.exe` |
 
-**Current Mac (v0.1.1, ad-hoc signed):**  
-https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.1/Cybro-Recorder-0.1.1-mac-arm64.dmg
+**Current Mac (v0.1.2, plain ad-hoc signed — no hardened runtime):**  
+https://github.com/asrafullfardin140-beep/call-recording/releases/download/v0.1.2/Cybro-Recorder-0.1.2-mac-arm64.dmg
 
 ### Publish a release (GitHub Actions)
 
@@ -29,38 +29,36 @@ Workflow: [`.github/workflows/release.yml`](.github/workflows/release.yml)
 2. Push a version tag, or run the workflow manually:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 Or: Actions → **Release** → **Run workflow** (optional tag / draft).
 
 Runners: `macos-14` (arm64 DMG/ZIP) and `windows-latest` (NSIS + portable).
 
-Mac builds are **ad-hoc signed** (not Apple Developer ID / notarized). Windows builds are unsigned. Gatekeeper / SmartScreen may still warn.
+Mac builds are **plain ad-hoc signed** (not Apple Developer ID / notarized) **without** hardened runtime. Windows builds are unsigned. SmartScreen may warn on Windows.
 
 ### First open on macOS (Apple Silicon)
 
-v0.1.0 DMGs were produced with signing disabled (`CSC_IDENTITY_AUTO_DISCOVERY=false`) while `hardenedRuntime` was on. Gatekeeper then reports **"Cybro Recorder is damaged and can't be opened"** — that was a bad/missing signature, not a corrupt download.
+| Build | What went wrong |
+|-------|-----------------|
+| v0.1.0 | No codesign + `hardenedRuntime` → Gatekeeper **"damaged"** |
+| v0.1.1 | Ad-hoc sign **with** `--options runtime` / hardenedRuntime → still **"damaged"** when quarantined |
+| **v0.1.2+** | Plain ad-hoc sign **without** hardened runtime → recoverable "unidentified developer" |
 
-From **v0.1.1** onward, CI ad-hoc signs the `.app` (`identity: "-"` + `scripts/afterPack.js`) and verifies `codesign` before uploading.
+**Normal first open (v0.1.2):**
 
-If macOS still blocks a downloaded build (quarantine / unidentified developer):
-
-1. Drag **Cybro Recorder** to Applications (or leave it in Downloads).
-2. Clear quarantine, then open:
+1. Download the DMG, drag **Cybro Recorder** to Applications.
+2. **Right-click** the app → **Open** → **Open** in the dialog (needed once for non-notarized apps).
+3. If macOS only shows "damaged" with no Open option (should not happen on 0.1.2), last resort:
 
 ```bash
 xattr -cr "/Applications/Cybro Recorder.app"
-# or, if you left it in Downloads:
-xattr -cr ~/Downloads/Cybro\ Recorder.app
 open "/Applications/Cybro Recorder.app"
 ```
 
-3. Or: right-click the app → **Open** → **Open** again in the dialog.
-4. System Settings → Privacy & Security may show an **Open Anyway** button after a blocked launch.
-
-True silent open on every Mac still requires an Apple Developer ID certificate and notarization (out of MVP scope).
+Silent open without any prompt still requires an Apple Developer ID certificate and notarization (out of MVP scope).
 
 ### Deploy the download page (Vercel)
 

@@ -6,9 +6,9 @@ const FALLBACK_RELEASES = `https://github.com/${REPO}/releases/latest`;
 
 /** Prefer these if the API is unreachable (keep in sync with latest shipped tag). */
 const FALLBACK_ASSETS = {
-  mac: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-mac-arm64.dmg`,
-  win: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Setup.exe`,
-  winPortable: `https://github.com/${REPO}/releases/download/v0.1.1/Cybro-Recorder-0.1.1-win-x64-Portable.exe`
+  mac: `https://github.com/${REPO}/releases/download/v0.1.2/Cybro-Recorder-0.1.2-mac-arm64.dmg`,
+  win: `https://github.com/${REPO}/releases/download/v0.1.2/Cybro-Recorder-0.1.2-win-x64-Setup.exe`,
+  winPortable: `https://github.com/${REPO}/releases/download/v0.1.2/Cybro-Recorder-0.1.2-win-x64-Portable.exe`
 };
 
 const btnMac = document.getElementById('btnMac');
@@ -48,7 +48,7 @@ function applyFallbacks(reason) {
   enableButton(btnMac, FALLBACK_ASSETS.mac);
   enableButton(btnWin, FALLBACK_ASSETS.win);
   enableButton(btnWinPortable, FALLBACK_ASSETS.winPortable);
-  setVersionText('0.1.1');
+  setVersionText('0.1.2');
   allReleases.href = FALLBACK_RELEASES;
   meta.dataset.state = 'warn';
   meta.textContent = reason;
@@ -63,7 +63,7 @@ async function loadLatest() {
 
     if (res.status === 404) {
       applyFallbacks(
-        'No public release found via API — using v0.1.1 direct links.'
+        'No public release found via API — using v0.1.2 direct links.'
       );
       return;
     }
@@ -100,7 +100,7 @@ async function loadLatest() {
     if (!portableOk) enableButton(btnWinPortable, FALLBACK_ASSETS.winPortable);
 
     allReleases.href = release.html_url || FALLBACK_RELEASES;
-    setVersionText(release.tag_name || '0.1.1');
+    setVersionText(release.tag_name || '0.1.2');
 
     const parts = [];
     if (release.tag_name) parts.push(release.tag_name);
@@ -113,7 +113,7 @@ async function loadLatest() {
   } catch (err) {
     console.error(err);
     applyFallbacks(
-      'Could not reach GitHub API — using v0.1.1 direct download links.'
+      'Could not reach GitHub API — using v0.1.2 direct download links.'
     );
   }
 }
